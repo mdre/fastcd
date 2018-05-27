@@ -1,0 +1,54 @@
+#!/bin/bash
+
+PATTERN=$1
+
+if [ "$PATTERN" = "-h" ]
+then
+	echo "fcd: idem like cd command but can jump to previous "
+  echo "     visited directories using a the last name."
+  echo ""
+  echo "to use add this line to .bashrc"
+  echo "alias fcd='. /path-to-script-dir/fastcd'"
+  echo ""
+  echo "Example:"
+  echo "#First time: "
+  echo "fcd /usr/share/okular/"
+  echo "# and next time just type the final dir"
+  echo "fcd okular"
+  return
+fi
+
+# verificar que exista el directorio
+if [ ! -d ~/.fcd ]; then
+    mkdir ~/.fcd
+fi
+
+# verificar que exista la base
+if [ ! -f ~/.fcd/visited.dir ]; then
+    touch ~/.fcd/visited.dir
+fi
+
+# buscar en la base la primera línea que corresponda.
+LINENUM=`grep -oE '[^/]+$' ~/.fcd/visited.dir | grep -n -m 1 ${PATTERN} | cut -d : -f 1`
+
+if [ ! -z "$LINENUM" ]; then
+    NEWDIR=`sed "${LINENUM}q;d" ~/.fcd/visited.dir`
+    cd $NEWDIR
+else
+    # no se encontró nada en la base. Verificar si el parámetro no
+    # es un directorio accesible
+    cd $PATTERN
+    ERROR=$?
+
+    if [ $ERROR -eq 0 ]; then
+          NEWDIR=`pwd`
+          # verificar que no exista en la base.
+          TEST=`grep -m 1 ${NEWDIR} ~/.fcd/visited.dir`
+          # si no se encontró, agregarlo a la base
+
+          if [ -z "$TEST" ]; then
+                echo $NEWDIR >>~/.fcd/visited.dir
+          fi
+    fi
+
+fi

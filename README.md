@@ -5,6 +5,15 @@ To use add this line to `.bashrc`:
 
 `alias fcd='. /path-to-script-dir/fastcd'`
 
+### Parameters
+`-h` show the help
+
+`-l` list the database
+
+`-L <pattern>`: list the reccords that match the pattern.
+
+`<pattern>` pattern to search and jump to.
+
 ### Example:
 ### First time: 
 `fcd /usr/share/okular/`

@@ -1,10 +1,52 @@
 #!/bin/bash
 
-PATTERN=$1
+# verificar que exista el directorio
+if [ ! -d ~/.fcd ]; then
+    mkdir ~/.fcd
+fi
 
-if [ "$PATTERN" = "-h" ]
+# verificar que exista la base
+if [ ! -f ~/.fcd/visited.dir ]; then
+    touch ~/.fcd/visited.dir
+fi
+
+# liberar las variables
+unset FULLLIST
+unset HELP
+unset LLIST
+unset LPATTERN
+unset PATTERN
+
+# parsear los param
+while getopts "hlL:" OPTION; do
+    case $OPTION in
+        h)
+			HELP=true;
+            shift
+			;;
+        l)
+			FULLLIST=true
+            shift
+			;;
+		L)
+			LLIST=true
+			LPATTERN=$OPTARG
+            shift
+            shift
+			;;
+		--)
+			;;
+        *)
+			if [ -z "$1" ]; then break; else echo "$1 is not a valid option"; return; fi
+            ;;
+	esac
+done
+PATTERN=$1
+shift $((OPTIND-1))
+
+if [ ! -z "$HELP" ]
 then
-	echo "fcd: idem like cd command but can jump to previous "
+  echo "fcd: idem like cd command but can jump to previous "
   echo "     visited directories using a the last name."
   echo ""
   echo "to use add this line to .bashrc"
@@ -15,18 +57,28 @@ then
   echo "fcd /usr/share/okular/"
   echo "# and next time just type the final dir"
   echo "fcd okular"
+  echo
+  echo "PARAMETERS:"
+  echo "-h: this help"
+  echo "-l: full list of recorded directories"
+  echo "-L <pattern>: list of directories that match the pattern"
   return
 fi
 
-# verificar que exista el directorio
-if [ ! -d ~/.fcd ]; then
-    mkdir ~/.fcd
+if [ ! -z "$FULLLIST" ]; then
+	echo "Full list: $FULLLIST"
+    cat ~/.fcd/visited.dir
+    return
 fi
 
-# verificar que exista la base
-if [ ! -f ~/.fcd/visited.dir ]; then
-    touch ~/.fcd/visited.dir
+if [ ! -z "$LLIST" ]; then
+	echo "subpattern: $LPATTERN"
+    grep "$LPATTERN" ~/.fcd/visited.dir
+    return
 fi
+
+
+# listar el contenido de la base.
 
 # buscar en la base la primera línea que corresponda.
 LINENUM=`grep -oE '[^/]+$' ~/.fcd/visited.dir | grep -n -m 1 ${PATTERN} | cut -d : -f 1`
